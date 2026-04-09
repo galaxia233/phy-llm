@@ -1,0 +1,10 @@
+*.duckdb
+__pycache__/
+.claude/
+.vscode/
+*.pyc
+*config*
+*test*
+.env
+Lauch_LiteLLM.bat
+*.egg-info/

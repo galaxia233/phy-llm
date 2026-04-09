@@ -1,0 +1,15 @@
+# 核心依赖
+requests>=2.28.0
+
+# PDF 处理
+PyMuPDF>=1.21.0
+PyMuPDFb>=1.21.0
+
+# Word 处理
+docx2pdf>=0.1.0
+
+# 答案验证
+sympy>=1.11.0
+
+# 环境变量加载
+python-dotenv>=1.0.0
