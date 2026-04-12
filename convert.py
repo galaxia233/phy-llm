@@ -349,7 +349,7 @@ def main() -> None:
     # Input can be a single supported file or a directory containing supported files.
     input_path = demo_dir / "input"
     # Parsed outputs will be extracted into this directory.
-    output_dir = demo_dir / "output"
+    output_dir = demo_dir / "output" / "raw"
     # Set this to an existing MinerU FastAPI base URL, for example:
     # "http://127.0.0.1:8000"
     # Leave it as None to start a temporary local mineru-api automatically.
@@ -398,10 +398,17 @@ def main() -> None:
             end_page_id=end_page_id,
         )
     )
+    print(f"已转换{input_path}")
 
-if __name__ == "__main__":
-    split_question(
-        input_md_path=Path(__file__).resolve().parent / "output" / "question",
-        output_dir=Path(__file__).resolve().parent / "output",
-        category="test",
-    )
+main()
+
+raw=Path(__file__).resolve().parent / "output" / "raw"
+for file_path in raw.rglob("*"):
+    if file_path.is_file():
+        print(f"切分文件: {file_path.relative_to(raw)}")
+        split_question(
+            input_md_path=file_path,
+            output_dir=file_path.parent / "problem",
+            category="test",
+            write_metadata=True,
+        )
