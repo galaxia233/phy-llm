@@ -408,7 +408,7 @@ for file_path in raw.rglob("*"):
         print(f"切分文件: {file_path.relative_to(raw)}")
         split_question(
             input_md_path=file_path,
-            output_dir=file_path.parent / "problem",
+            output_dir=Path(__file__).resolve().parent / "output" / "problem",
             category="test",
             write_metadata=True,
         )
