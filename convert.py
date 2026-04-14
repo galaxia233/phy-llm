@@ -412,3 +412,12 @@ for file_path in raw.rglob("*"):
             category="test",
             write_metadata=True,
         )
+
+#输出
+import os
+import magnus
+secret = magnus.custody_file(os.path.join(Path(__file__).resolve().parent, "output"))
+with open(os.environ["MAGNUS_ACTION"],"w") as f:
+    f.write(f"magnus receive {secret} --output output\n")
+
+print("处理完成")
