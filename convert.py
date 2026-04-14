@@ -398,13 +398,13 @@ def main() -> None:
             end_page_id=end_page_id,
         )
     )
-    print(f"已转换{input_path}")
+    print(f"已转换{input_path}内容到{output_dir}")
 
 main()
 
 raw=Path(__file__).resolve().parent / "output" / "raw"
 for file_path in raw.rglob("*"):
-    if file_path.is_file():
+    if file_path.is_file() and file_path.suffix == ".md":
         print(f"切分文件: {file_path.relative_to(raw)}")
         split_question(
             input_md_path=file_path,
