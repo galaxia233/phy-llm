@@ -31,8 +31,8 @@ PDF_DPI = 1  # PDF 转图片的缩放倍数，2 表示 2 倍清晰度
 
 # 重试配置
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_TIMEOUT = 600  # 增加超时时间到 600 秒，以处理多张图片
-DEFAULT_MAX_TOKENS = 2048
+DEFAULT_TIMEOUT = 600
+DEFAULT_MAX_TOKENS = 32768
 
 
 def check_api_key():

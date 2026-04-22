@@ -7,13 +7,11 @@
 # ==========================================
 # 导入模块
 # ==========================================
-from database.api import DB, open_db, quick_query
-
 from pathlib import Path
 
 from system_prompts import SystemPrompts, get_system, list_prompts
 from api_client import ask_ai
-from answer_verifier import verify_answer, verify_answer_numeric, verify_answer_formula
+from datagroup.answer_verifier import verify_answer, verify_answer_numeric, verify_answer_formula
 script_dir = Path(__file__).parent
 
 # ==========================================
@@ -111,6 +109,8 @@ if __name__ == "__main__":
     print("=" * 50)
     print("可用 system prompts:", list_prompts())
     print("=" * 50)
+
+    
     
     # 运行测试（取消注释以运行）
     

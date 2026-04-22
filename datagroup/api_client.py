@@ -20,13 +20,40 @@ from config import (
     DEFAULT_TIMEOUT,
     check_api_key,
 )
-from file_converter import (
+from datagroup.file_converter import (
     convert_pdf_to_images,
     convert_word_to_images,
     IMAGE_MEDIA_MAP,
     is_supported_image,
     get_media_type,
 )
+
+
+def read_md_file(path: str) -> str:
+    """
+    读取 Markdown 文件内容
+
+    Args:
+        path: md 文件路径
+
+    Returns:
+        md 文件的文本内容
+
+    Raises:
+        FileNotFoundError: 文件不存在
+        IOError: 读取失败
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        raise FileNotFoundError(f"md 文件不存在：{path}")
+    except UnicodeDecodeError:
+        # 尝试其他编码
+        with open(path, "r", encoding="gbk") as f:
+            return f.read()
+    except IOError as e:
+        raise IOError(f"读取 md 文件失败：{path}, 错误：{e}")
 
 
 def ask_ai(
@@ -39,7 +66,7 @@ def ask_ai(
 ) -> str:
     """
     调用 AI API 回答问题
-    
+
     Args:
         prompt: 问题文本
         files: 文件路径，可以是单个路径 (str) 或多个路径的列表 (list[str])
@@ -47,16 +74,17 @@ def ask_ai(
                - 图片：.jpg, .jpeg, .png, .gif, .webp
                - PDF: .pdf（转换为图片，每页一张）
                - Word: .docx, .doc（转换为图片，每页一张）
+               - Markdown: .md（直接读取文本内容）
                文件会按顺序添加到消息中，可以用 [文件 1], [文件 2] 等方式在 prompt 中指代
-               注意：PDF 和 Word 文件整体使用一个编号，只有第一页会显示文件标记
+               注意：PDF/Word/MD 文件整体使用一个编号，只有第一页/开头会显示文件标记
         system: 系统提示
         model: 模型名称
         max_tokens: 最大生成 token 数
         max_retries: 最大重试次数
-    
+
     Returns:
         AI 回答文本
-    
+
     Raises:
         ValueError: 不支持的文件类型
         FileNotFoundError: 文件不存在
@@ -76,17 +104,20 @@ def ask_ai(
         file_paths = [files]
     else:
         file_paths = list(files)
-    
+
     # 收集所有要处理的图片（包括从 PDF/Word 转换来的）
     # all_files: List[Tuple[bytes, str, str, bool]] = [(image_bytes, media_type, display_name, add_marker), ...]
     # add_marker 表示是否需要添加文件标记
     all_files: List[Tuple[bytes, str, str, bool]] = []
-    
+
+    # 收集所有 md 文件的文本内容
+    md_contents: List[str] = []
+
     file_counter = 0  # 文件编号计数器
-    
+
     for path in file_paths:
         suffix = Path(path).suffix.lower()
-        
+
         # 判断文件类型并处理
         if is_supported_image(suffix):
             # 图片文件 - 每个图片独立计数
@@ -100,21 +131,27 @@ def ask_ai(
             except IOError as e:
                 raise IOError(f"读取图片文件失败：{path}, 错误：{e}")
             all_files.append((image_data, media_type, Path(path).name, True))
-        
+
         elif suffix == ".pdf":
             # PDF 文件 - 整个文件计为一个编号，发送所有页
             file_counter += 1
             pdf_images = convert_pdf_to_images(path)
             for i, (img_bytes, name) in enumerate(pdf_images):
                 all_files.append((img_bytes, "image/png", f"{Path(path).stem}.pdf", i == 0))
-        
+
         elif suffix in [".docx", ".doc"]:
             # Word 文件 - 整个文件计为一个编号，发送所有页
             file_counter += 1
             word_images = convert_word_to_images(path)
             for i, (img_bytes, name) in enumerate(word_images):
                 all_files.append((img_bytes, "image/png", f"{Path(path).stem}.{suffix[1:]}", i == 0))
-        
+
+        elif suffix == ".md":
+            # Markdown 文件 - 读取文本内容
+            file_counter += 1
+            md_content = read_md_file(path)
+            md_contents.append(f"[文件 {file_counter}: {Path(path).name}]\n\n{md_content}")
+
         else:
             raise ValueError(f"不支持的文件类型：{suffix}, 文件：{path}")
     
@@ -130,7 +167,14 @@ def ask_ai(
                 "type": "text",
                 "text": f"[文件 {idx}: {name}]"
             })
-    
+
+    # 将 md 文件内容添加到 content
+    for md_content in md_contents:
+        content.append({
+            "type": "text",
+            "text": md_content
+        })
+
     content.append({"type": "text", "text": prompt})
     
     body = {
