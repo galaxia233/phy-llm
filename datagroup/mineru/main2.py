@@ -10,7 +10,8 @@ output_dir = Path(__file__).resolve().parent / "output"
 command = [
      "mineru",
      "-p", str(input_dir),
-     "-o", str(output_dir)
+     "-o", str(output_dir),
+     "-m", "txt"
 ]
 
 try:
